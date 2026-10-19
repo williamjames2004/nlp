@@ -1,0 +1,6 @@
+(S
+  (NP The/DT intelligent/JJ student/NN)
+  completed/VBD
+  the/DT
+  NLP/NNP
+  (NP project/NN))

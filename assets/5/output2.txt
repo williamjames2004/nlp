@@ -1,0 +1,4 @@
+Before merging:
+(S (NP The/DT science/NN) (NP student/NN))
+After merning:
+(S (NP (NP The/DT science/NN) (NP student/NN)))

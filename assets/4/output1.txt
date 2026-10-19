@@ -1,0 +1,2 @@
+Accuracy:  0.8883374689826302
+[('The', 'DT'), ('boy', 'NN'), ('is', 'VBZ'), ('sleeping', 'VBG')]

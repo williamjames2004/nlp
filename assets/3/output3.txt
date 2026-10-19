@@ -1,0 +1,4 @@
+['negative/negative.txt', 'positive/positive.txt']
+['negative', 'positive']
+['The', 'movie', 'was', 'excellent', 'and', ...]
+['The', 'movie', 'was', 'boring', 'and', ...]

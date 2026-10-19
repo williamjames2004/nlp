@@ -1,0 +1,2 @@
+The student is learning Natural Language Processing.
+NLTK is a Python library.

@@ -1,0 +1,7 @@
+Predicted chunk tags:
+The B-NP
+smart I-NP
+student I-NP
+solved B-NP
+the B-NP
+problem I-NP

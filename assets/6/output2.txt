@@ -1,0 +1,5 @@
+Original Tree:
+(S (VP eat/VB) (VP sleep/VB))
+
+After Swapping VP:
+(S (VP sleep/VB) (VP eat/VB))

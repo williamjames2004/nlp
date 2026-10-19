@@ -1,0 +1,4 @@
+Before Correction:
+(S (NP She/PRP) (VP is/VBZ go/VB))
+After Correction:
+(S (NP She/PRP) (VP going/VBG going/VBG))

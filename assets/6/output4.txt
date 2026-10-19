@@ -1,0 +1,5 @@
+Chunk Tree:
+(S (NP The/DT student/NN) (VP is/VBZ reading/VBG books/NNS))
+
+Text:
+Thestudentisreadingbooks

@@ -1,0 +1,1 @@
+{'felicitous', 'well-chosen', 'glad'}

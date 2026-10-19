@@ -1,0 +1,3 @@
+['negative/negative.txt', 'positive/positive.txt', 'sample.txt']
+['The', 'movie', 'was', 'boring', 'and', 'disappointing', '.', 'The', 'movie', 'was', 'excellent', 'and', 'enjoyable', '.', 'The', 'student', 'is', 'learning', 'Natural', 'Language', 'Processing', '.', 'NLTK', 'is', 'a', 'Python', 'library', '.']
+[['The', 'movie', 'was', 'boring', 'and', 'disappointing', '.'], ['The', 'movie', 'was', 'excellent', 'and', 'enjoyable', '.'], ...]

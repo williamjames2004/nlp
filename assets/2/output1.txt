@@ -1,0 +1,3 @@
+jumping -> jump
+tries -> tri
+running -> run

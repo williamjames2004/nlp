@@ -1,0 +1,1 @@
+(S (NP The/DT smart/JJ student/NN) solved/VBD (NP the/DT problem/NN))

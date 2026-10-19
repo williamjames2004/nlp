@@ -1,0 +1,5 @@
+Original Tree:
+(NP students/NNS books/NNS teachers/NNS)
+
+After Singularizing
+(NP student/NN book/NN teacher/NN)

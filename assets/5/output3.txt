@@ -1,0 +1,4 @@
+Original:
+(S (NP The/DT student/NN) solved/VBD problems/NNS)
+Expanded:
+(S (NP The/DT student/NN) solved/VBD problems/NNS)

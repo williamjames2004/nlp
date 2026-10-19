@@ -1,0 +1,9 @@
+bark.n.01 tough protective covering of the woody stems and roots of trees and other woody plants
+bark.n.02 a noise resembling the bark of a dog
+bark.n.03 a sailing ship with 3 (or more) masts
+bark.n.04 the sound made by a dog
+bark.v.01 speak in an unfriendly tone
+bark.v.02 cover with bark
+bark.v.03 remove the bark of a tree
+bark.v.04 make barking sounds
+bark.v.05 tan (a skin) with bark tannins
