@@ -1,4 +1,4 @@
-
+<!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -316,6 +316,16 @@
     });
 
     loadExercises();
+    if ("serviceWorker" in navigator) {
+    window.addEventListener("load", async () => {
+        try {
+            await navigator.serviceWorker.register("/sw.js");
+            console.log("Offline support enabled.");
+        } catch (error) {
+            console.error("Service worker registration failed:", error);
+        }
+    });
+}
 </script>
 </body>
 </html>
