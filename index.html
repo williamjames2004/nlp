@@ -26,19 +26,75 @@
         .copy-btn:hover { color: #7c3aed; transform: scale(1.05); }
         .exercise-section { scroll-margin-top: 20px; }
         #updateContentBtn:hover { transform: translateY(-2px); }
+        .update-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 11px 20px;
+            border: 1px solid rgba(255,255,255,0.7);
+            border-radius: 14px;
+            background: linear-gradient(135deg, #ffffff, #e9e7ff);
+            color: #3730a3;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0.2px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+            transition: all 0.3s ease;
+        }
+        .update-btn:hover {
+            background: linear-gradient(135deg, #ede9fe, #c4b5fd);
+            color: #312e81;
+            transform: translateY(-3px);
+            box-shadow: 0 9px 25px rgba(167,139,250,0.35);
+        }
+        .update-btn:active {
+            transform: scale(0.97);
+        }
+        .update-btn:disabled {
+            opacity: 0.75;
+            cursor: wait;
+            transform: none;
+        }
+        .update-icon {
+            display: inline-flex;
+            font-size: 20px;
+            transition: transform 0.5s ease;
+        }
+        .update-btn:hover .update-icon {
+            transform: rotate(180deg);
+        }
+        .update-stars {
+            color: #7c3aed;
+            font-size: 14px;
+        }
+        @keyframes updateSpin {
+            to { transform: rotate(360deg); }
+        }
+        .update-btn.is-updating .update-icon {
+            animation: updateSpin 0.8s linear infinite;
+        }
+        @media (max-width: 576px) {
+            .update-btn {
+                padding: 9px 13px;
+                font-size: 12px;
+                gap: 7px;
+            }
+        }
     </style>
 </head>
 <body>
 
 <div class="container py-4 py-md-5">
-
     <!-- Header -->
     <header class="hero text-white text-center rounded-4 p-4 p-md-5 mb-4">
-
         <div class="d-flex justify-content-end mb-3">
-            <button id="updateContentBtn" class="btn btn-light btn-sm fw-semibold">
-                <i class="bi bi-arrow-clockwise me-1"></i>
-                Load Updated Content
+            <button id="updateContentBtn" class="btn update-btn">
+                <span class="update-icon">
+                    <i class="bi bi-arrow-repeat"></i>
+                </span>
+                <span class="update-text">Load Updated Content</span>
+                <i class="bi bi-stars update-stars"></i>
             </button>
         </div>
 
