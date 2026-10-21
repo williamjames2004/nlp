@@ -1,4 +1,7 @@
+
 const CACHE_NAME = "nlp-practical-v2";
+const TEMP_CACHE = "nlp-practical-staging";
+const BACKUP_CACHE = "nlp-practical-backup";
 
 const FILES_TO_CACHE = [
     "/",
@@ -80,93 +83,193 @@ const FILES_TO_CACHE = [
     "/assets/7/output4.txt"
 ];
 
+// Copy all entries from one cache to another
+const copyCache = async (sourceName, destinationName) => {
+    const source = await caches.open(sourceName);
+    const destination = await caches.open(destinationName);
+    const requests = await source.keys();
+
+    for (const request of requests) {
+        const response = await source.match(request);
+
+        if (response) {
+            await destination.put(request, response);
+        }
+    }
+};
+
 // Install and cache website files
 self.addEventListener("install", event => {
-    event.waitUntil(
-        caches.open(CACHE_NAME).then(async cache => {
-            const results = await Promise.allSettled(
-                FILES_TO_CACHE.map(async path => {
-                    const response = await fetch(path, {
-                        cache: "reload"
-                    });
+    event.waitUntil((async () => {
+        const cache = await caches.open(CACHE_NAME);
 
-                    if (!response.ok) {
-                        throw new Error(
-                            `Failed to cache ${path}: ${response.status}`
-                        );
-                    }
+        await Promise.all(FILES_TO_CACHE.map(async path => {
+            const response = await fetch(path, {
+                cache: "reload"
+            });
 
-                    await cache.put(path, response);
-                })
-            );
-
-            const failed = results
-                .map((result, index) => ({ result, path: FILES_TO_CACHE[index] }))
-                .filter(item => item.result.status === "rejected");
-
-            if (failed.length > 0) {
-                console.error(
-                    "Some files could not be cached:",
-                    failed.map(item => item.path)
-                );
-
+            if (!response.ok) {
                 throw new Error(
-                    `${failed.length} website file(s) failed to cache.`
+                    `Failed to cache ${path}: ${response.status}`
                 );
             }
 
-            await self.skipWaiting();
-        })
-    );
+            await cache.put(path, response);
+        }));
+
+        await self.skipWaiting();
+    })());
 });
 
-// Activate the new cache and remove older versions
+// Activate the service worker
 self.addEventListener("activate", event => {
-    event.waitUntil(
-        caches.keys().then(async keys => {
-            await Promise.all(
-                keys
-                    .filter(key =>
-                        key.startsWith("nlp-practical-") &&
-                        key !== CACHE_NAME
-                    )
-                    .map(key => caches.delete(key))
-            );
+    event.waitUntil((async () => {
+        const keys = await caches.keys();
 
-            await self.clients.claim();
-        })
-    );
+        await Promise.all(
+            keys
+                .filter(key =>
+                    key.startsWith("nlp-practical-") &&
+                    ![
+                        CACHE_NAME,
+                        TEMP_CACHE,
+                        BACKUP_CACHE
+                    ].includes(key)
+                )
+                .map(key => caches.delete(key))
+        );
+
+        await self.clients.claim();
+    })());
+});
+
+// Receive the update request from index.html
+self.addEventListener("message", event => {
+    if (event.data?.type !== "UPDATE_CONTENT") {
+        return;
+    }
+
+    const replyPort = event.ports[0];
+
+    event.waitUntil((async () => {
+        try {
+            // Remove an incomplete staging cache from a previous attempt
+            await caches.delete(TEMP_CACHE);
+
+            // Download every current file into a separate cache
+            const staging = await caches.open(TEMP_CACHE);
+
+            await Promise.all(FILES_TO_CACHE.map(async path => {
+                const response = await fetch(path, {
+                    cache: "no-store",
+                    headers: {
+                        "X-SW-Update": "true"
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(
+                        `Failed to download ${path}: HTTP ${response.status}`
+                    );
+                }
+
+                await staging.put(path, response);
+            }));
+
+            // Save the existing cache as a backup
+            await caches.delete(BACKUP_CACHE);
+
+            const existingCache = await caches.open(CACHE_NAME);
+            const existingRequests = await existingCache.keys();
+
+            if (existingRequests.length > 0) {
+                await copyCache(CACHE_NAME, BACKUP_CACHE);
+            }
+
+            // Replace the old cache only after downloads have succeeded
+            await caches.delete(CACHE_NAME);
+
+            try {
+                await copyCache(TEMP_CACHE, CACHE_NAME);
+                await caches.delete(TEMP_CACHE);
+                await caches.delete(BACKUP_CACHE);
+
+                replyPort?.postMessage({
+                    success: true,
+                    message: "All content updated successfully."
+                });
+
+            } catch (replacementError) {
+                // Restore the old cache if replacement fails
+                await caches.delete(CACHE_NAME);
+
+                const backup = await caches.open(BACKUP_CACHE);
+                const backupRequests = await backup.keys();
+
+                if (backupRequests.length > 0) {
+                    await copyCache(BACKUP_CACHE, CACHE_NAME);
+                }
+
+                throw replacementError;
+            }
+
+        } catch (error) {
+            console.error("Cache update failed:", error);
+
+            await caches.delete(TEMP_CACHE);
+
+            replyPort?.postMessage({
+                success: false,
+                message: error.message || "Cache update failed."
+            });
+        }
+    })());
 });
 
 // Serve cached files when offline
 self.addEventListener("fetch", event => {
     const request = event.request;
 
-    if (request.method !== "GET") return;
+    // Let update downloads reach the network directly
+    if (request.headers.has("X-SW-Update")) {
+        return;
+    }
+
+    if (request.method !== "GET") {
+        return;
+    }
 
     const url = new URL(request.url);
 
-    // Handle only files hosted on this website
-    if (url.origin !== self.location.origin) return;
+    // Handle only files from this website
+    if (url.origin !== self.location.origin) {
+        return;
+    }
 
-    event.respondWith(
-        caches.match(request).then(cachedResponse => {
-            if (cachedResponse) {
-                return cachedResponse;
+    event.respondWith((async () => {
+        const cachedResponse = await caches.match(request);
+
+        if (cachedResponse) {
+            return cachedResponse;
+        }
+
+        try {
+            return await fetch(request);
+        } catch (error) {
+            if (request.mode === "navigate") {
+                const offlinePage = await caches.match("/index.html");
+
+                if (offlinePage) {
+                    return offlinePage;
+                }
             }
 
-            return fetch(request).catch(() => {
-                if (request.mode === "navigate") {
-                    return caches.match("/index.html");
+            return new Response("File unavailable offline.", {
+                status: 503,
+                headers: {
+                    "Content-Type": "text/plain; charset=utf-8"
                 }
-
-                return new Response("File unavailable offline.", {
-                    status: 503,
-                    headers: {
-                        "Content-Type": "text/plain; charset=utf-8"
-                    }
-                });
             });
-        })
-    );
+        }
+    })());
 });

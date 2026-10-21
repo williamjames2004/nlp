@@ -1,4 +1,4 @@
-<!-- index.html -->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -25,6 +25,7 @@
         .file-code { min-height: 120px; background: #f8fafc; color: #334155; }
         .copy-btn:hover { color: #7c3aed; transform: scale(1.05); }
         .exercise-section { scroll-margin-top: 20px; }
+        #updateContentBtn:hover { transform: translateY(-2px); }
     </style>
 </head>
 <body>
@@ -33,6 +34,14 @@
 
     <!-- Header -->
     <header class="hero text-white text-center rounded-4 p-4 p-md-5 mb-4">
+
+        <div class="d-flex justify-content-end mb-3">
+            <button id="updateContentBtn" class="btn btn-light btn-sm fw-semibold">
+                <i class="bi bi-arrow-clockwise me-1"></i>
+                Load Updated Content
+            </button>
+        </div>
+
         <span class="badge bg-light text-primary mb-3">2026 • Practical Examination</span>
         <h1 class="display-6 fw-bold">NLP Practical Exam</h1>
         <p class="mb-3">Natural Language Processing — Python Programs & Outputs</p>
@@ -94,20 +103,25 @@
     const container = document.getElementById("exercisesContainer");
     const searchInput = document.getElementById("searchInput");
     const clearSearch = document.getElementById("clearSearch");
+    const updateContentBtn = document.getElementById("updateContentBtn");
 
+    // Read files
     const readFile = async (path) => {
         try {
             const response = await fetch(path);
+
             if (!response.ok) {
                 throw new Error("File not found");
             }
+
             return await response.text();
         } catch (error) {
             return "Unable to load: " + path +
-                   "\n\nCheck the file path and run this webpage using a local web server.";
+                "\n\nCheck the file path and run this webpage using a local web server.";
         }
     };
 
+    // Create read-only text areas
     const createTextarea = (content, className, label) => {
         const textarea = document.createElement("textarea");
         textarea.className = className;
@@ -118,6 +132,7 @@
         return textarea;
     };
 
+    // Copy button
     const createCopyButton = (textarea) => {
         const button = document.createElement("button");
         button.type = "button";
@@ -128,31 +143,33 @@
             try {
                 await navigator.clipboard.writeText(textarea.value);
                 button.innerHTML = '<i class="bi bi-check2"></i> Copied';
-                setTimeout(() => {
-                    button.innerHTML = '<i class="bi bi-copy"></i> Copy';
-                }, 1500);
             } catch (error) {
                 textarea.focus();
                 textarea.select();
+
                 const copied = document.execCommand("copy");
+
                 button.innerHTML = copied
                     ? '<i class="bi bi-check2"></i> Copied'
                     : '<i class="bi bi-exclamation-circle"></i> Select & Copy';
-                setTimeout(() => {
-                    button.innerHTML = '<i class="bi bi-copy"></i> Copy';
-                }, 1500);
             }
+
+            setTimeout(() => {
+                button.innerHTML = '<i class="bi bi-copy"></i> Copy';
+            }, 1500);
         });
 
         return button;
     };
 
+    // Supporting text files
     const createFileCard = async (path, title) => {
         const card = document.createElement("div");
         card.className = "card mt-3 overflow-hidden";
 
         const header = document.createElement("div");
         header.className = "card-header bg-light d-flex justify-content-between align-items-center gap-2";
+
         const heading = document.createElement("span");
         heading.className = "fw-semibold small";
         heading.textContent = title;
@@ -168,6 +185,7 @@
         return card;
     };
 
+    // Program card
     const createProgramCard = async (exercise, program) => {
         const col = document.createElement("div");
         col.className = "col-12 col-xl-6 program-item";
@@ -182,7 +200,10 @@
         title.className = "fw-semibold";
         title.textContent = "Program " + program;
 
-        const programContent = await readFile(`assets/${exercise}/${program}.py`);
+        const programContent = await readFile(
+            `assets/${exercise}/${program}.py`
+        );
+
         const programArea = createTextarea(
             programContent,
             "program-code",
@@ -197,22 +218,25 @@
         body.appendChild(programArea);
 
         const outputHeader = document.createElement("div");
-        outputHeader.className = "card-header bg-white border-top d-flex justify-content-between align-items-center gap-2";
+        outputHeader.className =
+            "card-header bg-white border-top d-flex justify-content-between align-items-center gap-2";
 
         const outputTitle = document.createElement("span");
         outputTitle.className = "fw-semibold";
         outputTitle.textContent = "Output";
 
-        const outputContent = await readFile(`assets/${exercise}/output${program}.txt`);
+        const outputContent = await readFile(
+            `assets/${exercise}/output${program}.txt`
+        );
+
         const outputArea = createTextarea(
             outputContent,
             "output-code",
-            `Exercise ${exercise}, output`
+            `Exercise ${exercise}, Program ${program} output`
         );
 
-        const outputCopy = createCopyButton(outputArea);
         outputHeader.appendChild(outputTitle);
-        outputHeader.appendChild(outputCopy);
+        outputHeader.appendChild(createCopyButton(outputArea));
 
         const outputBody = document.createElement("div");
         outputBody.className = "p-0";
@@ -223,7 +247,7 @@
         card.appendChild(outputHeader);
         card.appendChild(outputBody);
 
-        // Supporting text files for Exercise 3
+        // Exercise 3 sample files
         if (exercise === 3 && program === 2) {
             card.appendChild(await createFileCard(
                 "assets/3/sample.txt",
@@ -236,6 +260,7 @@
                 "assets/3/positive/positive.txt",
                 "positive/positive.txt"
             ));
+
             card.appendChild(await createFileCard(
                 "assets/3/negative/negative.txt",
                 "negative/negative.txt"
@@ -246,13 +271,27 @@
         return col;
     };
 
+    // Exercise names
+    const exercisesSet = {
+        1: "Tokenizing text and wordnet basics",
+        2: "Replacing and Correcting Words",
+        3: "Creating Custom corpus",
+        4: "Parts-of-Speech Tagging",
+        5: "Extracting Chunks",
+        6: "Transforming chunks and Trees",
+        7: "Parsing specific Data"
+    };
+
+    // Create exercise section
     const createExercise = async (exercise) => {
         const section = document.createElement("section");
         section.id = "exercise" + exercise;
-        section.className = "exercise-section bg-white rounded-4 shadow-sm p-3 p-md-4 mb-4";
+        section.className =
+            "exercise-section bg-white rounded-4 shadow-sm p-3 p-md-4 mb-4";
 
         const headingRow = document.createElement("div");
-        headingRow.className = "d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4";
+        headingRow.className =
+            "d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4";
 
         const heading = document.createElement("h2");
         heading.className = "h3 fw-bold text-primary mb-0";
@@ -277,16 +316,7 @@
         return section;
     };
 
-    let exercisesSet = {
-        1: "Tokenizing text and wordnet basics",
-        2: "Replacing and Correcting Words",
-        3: "Creating Custom corpus",
-        4: "Parts-of-Speech Tagging",
-        5: "Extracting Chunks",
-        6: "Transforming chunks and Trees",
-        7: "Parsing specific Data"
-    }
-
+    // Load all exercises
     const loadExercises = async () => {
         container.innerHTML = "";
 
@@ -294,10 +324,10 @@
             container.appendChild(await createExercise(exercise));
         }
 
-        document.getElementById("loadingMessage")?.remove();
         applySearch();
     };
 
+    // Search programs and code
     const applySearch = () => {
         const query = searchInput.value.trim().toLowerCase();
 
@@ -305,11 +335,14 @@
             let visiblePrograms = 0;
 
             section.querySelectorAll(".program-item").forEach(item => {
-                const matches = item.textContent.toLowerCase().includes(query) ||
-                                Array.from(item.querySelectorAll("textarea"))
-                                    .some(area => area.value.toLowerCase().includes(query));
+                const matches =
+                    section.querySelector("h2").textContent.toLowerCase().includes(query) ||
+                    item.textContent.toLowerCase().includes(query) ||
+                    Array.from(item.querySelectorAll("textarea"))
+                        .some(area => area.value.toLowerCase().includes(query));
 
                 item.classList.toggle("d-none", !matches);
+
                 if (matches) visiblePrograms++;
             });
 
@@ -325,17 +358,102 @@
         searchInput.focus();
     });
 
-    loadExercises();
-    if ("serviceWorker" in navigator) {
-    window.addEventListener("load", async () => {
+    // Load Updated Content button
+    updateContentBtn.addEventListener("click", async () => {
+        const originalText = updateContentBtn.innerHTML;
+
+        if (!("serviceWorker" in navigator)) {
+            alert("Offline caching is not supported in this browser.");
+            return;
+        }
+
+        updateContentBtn.disabled = true;
+        updateContentBtn.innerHTML =
+            '<span class="spinner-border spinner-border-sm me-1"></span> Updating...';
+
+        let channel;
+
         try {
             await navigator.serviceWorker.register("/sw.js");
-            console.log("Offline support enabled.");
+            await navigator.serviceWorker.ready;
+
+            let worker = navigator.serviceWorker.controller;
+
+            if (!worker) {
+                await new Promise((resolve, reject) => {
+                    const timeout = setTimeout(() => {
+                        reject(new Error("Service worker is not controlling this page. Reload and try again."));
+                    }, 10000);
+
+                    navigator.serviceWorker.addEventListener(
+                        "controllerchange",
+                        () => {
+                            clearTimeout(timeout);
+                            resolve();
+                        },
+                        { once: true }
+                    );
+                });
+
+                worker = navigator.serviceWorker.controller;
+            }
+
+            if (!worker) {
+                throw new Error("Service worker is unavailable.");
+            }
+
+            channel = new MessageChannel();
+
+            const result = await new Promise((resolve, reject) => {
+                const timeout = setTimeout(() => {
+                    reject(new Error("Update timed out. Please try again."));
+                }, 120000);
+
+                channel.port1.onmessage = event => {
+                    clearTimeout(timeout);
+                    resolve(event.data);
+                };
+
+                worker.postMessage(
+                    { type: "UPDATE_CONTENT" },
+                    [channel.port2]
+                );
+            });
+
+            if (!result.success) {
+                throw new Error(result.message || "Unable to update content.");
+            }
+
+            updateContentBtn.innerHTML =
+                '<i class="bi bi-check-circle me-1"></i> Updated!';
+
+            window.location.reload();
+
         } catch (error) {
-            console.error("Service worker registration failed:", error);
+            console.error("Content update failed:", error);
+            alert("Unable to update content.\n" + error.message);
+
+            updateContentBtn.disabled = false;
+            updateContentBtn.innerHTML = originalText;
+
+        } finally {
+            channel?.port1.close();
         }
     });
-}
+
+    // Register service worker
+    if ("serviceWorker" in navigator) {
+        window.addEventListener("load", async () => {
+            try {
+                await navigator.serviceWorker.register("/sw.js");
+                console.log("Offline support enabled.");
+            } catch (error) {
+                console.error("Service worker registration failed:", error);
+            }
+        });
+    }
+
+    loadExercises();
 </script>
 </body>
 </html>
